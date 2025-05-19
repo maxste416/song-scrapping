@@ -1,0 +1,96 @@
+/* Custom CSS - Minimal overrides for the Bootstrap theme */
+
+/* Song content formatting to preserve spacing and line breaks */
+.song-content {
+    white-space: pre-wrap;
+    font-family: monospace;
+    line-height: 1.5;
+    background-color: var(--bs-dark);
+    padding: 1rem;
+    border-radius: 0.25rem;
+}
+
+/* Chord formatting */
+.chord {
+    font-weight: bold;
+    color: var(--bs-info);
+}
+
+/* Enhanced chord highlighting for the highlighted view */
+.chord-highlight {
+    font-weight: bold;
+    color: white;
+    background-color: var(--bs-info);
+    padding: 0.1rem 0.3rem;
+    border-radius: 0.25rem;
+    margin: 0 0.1rem;
+}
+
+/* Lyrics-only formatting */
+.lyrics-only {
+    color: white;
+    font-family: monospace;
+    white-space: pre-wrap;
+}
+
+/* Chords-only formatting */
+.chords-only {
+    color: #ff9800; /* Orange color for chords */
+    font-family: monospace;
+    font-weight: bold;
+    white-space: pre-wrap;
+}
+
+/* Song card styling */
+.song-card {
+    height: 100%;
+    transition: transform 0.2s;
+}
+
+.song-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Category pill styling */
+.category-pill {
+    background-color: var(--bs-dark);
+    color: var(--bs-light);
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    margin: 0.25rem;
+    border-radius: 2rem;
+    display: inline-block;
+    transition: background-color 0.2s;
+}
+
+.category-pill:hover {
+    background-color: var(--bs-primary);
+    color: white;
+}
+
+/* Scraper button animation */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.btn-scrape.running {
+    animation: pulse 1.5s infinite;
+}
+
+/* Loading spinner */
+.loader {
+    border: 5px solid var(--bs-dark);
+    border-top: 5px solid var(--bs-info);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

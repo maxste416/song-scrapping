@@ -1,0 +1,371 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ song.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+            {% if song.categories and song.categories|length > 0 %}
+            <li class="breadcrumb-item">
+                <a href="{{ url_for('view_category', category_name=song.categories[0]) }}">
+                    {{ song.categories[0] }}
+                </a>
+            </li>
+            {% endif %}
+            <li class="breadcrumb-item active" aria-current="page">{{ song.title }}</li>
+        </ol>
+    </nav>
+    
+    <div class="card bg-dark">
+        <div class="card-header">
+            <h1 class="card-title">
+                <i class="fas fa-music me-2"></i> {{ song.title }}
+            </h1>
+            {% if song.categories %}
+            <div class="mt-2">
+                {% for category in song.categories %}
+                <a href="{{ url_for('view_category', category_name=category) }}" class="badge bg-secondary text-decoration-none me-1">
+                    <i class="fas fa-tag me-1"></i> {{ category }}
+                </a>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            <div class="btn-group mb-3" role="group" aria-label="View Options">
+                <button type="button" class="btn btn-outline-primary active" id="btn-chords-lyrics">
+                    <i class="fas fa-music me-1"></i> Chords & Lyrics
+                </button>
+                <button type="button" class="btn btn-outline-primary" id="btn-lyrics-only">
+                    <i class="fas fa-align-left me-1"></i> Lyrics Only
+                </button>
+                <button type="button" class="btn btn-outline-primary" id="btn-chords-highlighted">
+                    <i class="fas fa-guitar me-1"></i> Highlight Chords
+                </button>
+                <button type="button" class="btn btn-outline-primary" id="btn-separated-view">
+                    <i class="fas fa-columns me-1"></i> Separated View
+                </button>
+            </div>
+
+            <div class="mb-3">
+                <button class="btn btn-sm btn-outline-info" id="btn-copy-lyrics">
+                    <i class="fas fa-copy me-1"></i> Copy Lyrics
+                </button>
+                <button class="btn btn-sm btn-outline-info ms-2" id="btn-copy-chords">
+                    <i class="fas fa-copy me-1"></i> Copy Chords
+                </button>
+                <button class="btn btn-sm btn-outline-info ms-2" id="btn-download-txt">
+                    <i class="fas fa-download me-1"></i> Download as TXT
+                </button>
+                <button class="btn btn-sm btn-outline-warning ms-2" id="btn-edit-song">
+                    <i class="fas fa-edit me-1"></i> Edit Song
+                </button>
+            </div>
+            
+            <div class="alert alert-success d-none" id="copy-alert">
+                <i class="fas fa-check-circle me-1"></i> Copied to clipboard!
+            </div>
+            
+            <div id="chords-lyrics-view">
+                <h5 class="mb-3">Lyrics and Chords:</h5>
+                <div class="song-content mb-4">{{ song.content }}</div>
+            </div>
+            
+            <div id="lyrics-only-view" style="display: none;">
+                <h5 class="mb-3">Lyrics Only:</h5>
+                <div class="song-content">{{ song.lyrics }}</div>
+            </div>
+            
+            <div id="chords-highlighted-view" style="display: none;">
+                <h5 class="mb-3">Chords Highlighted:</h5>
+                <div class="song-content highlight-chords">{{ song.content }}</div>
+            </div>
+            
+            <div id="separated-view" style="display: none;">
+                <h5 class="mb-3">Chords and Lyrics Separated:</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card bg-dark mb-3">
+                            <div class="card-header">
+                                <h6 class="mb-0">Lyrics</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="song-content lyrics-only">{{ song.lyrics }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-dark mb-3">
+                            <div class="card-header">
+                                <h6 class="mb-0">Chords</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="song-content chords-only" id="chords-only-content"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Song Edit Modal -->
+            <div class="modal fade" id="editSongModal" tabindex="-1" aria-labelledby="editSongModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content bg-dark text-light">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editSongModalLabel">Edit Song: {{ song.title }}</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="editSongForm">
+                                <div class="mb-3">
+                                    <label for="editTitle" class="form-label">Song Title</label>
+                                    <input type="text" class="form-control" id="editTitle" value="{{ song.title }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="editContent" class="form-label">Lyrics and Chords</label>
+                                    <textarea class="form-control" id="editContent" rows="10">{{ song.content }}</textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="editCategories" class="form-label">Categories (comma separated)</label>
+                                    <input type="text" class="form-control" id="editCategories" value="{{ song.categories|join(', ') }}">
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primary" id="saveSongChanges">Save Changes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <a href="{{ song.url }}" target="_blank" class="btn btn-outline-info">
+                    <i class="fas fa-external-link-alt me-1"></i> View Original Source
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Back to Home
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Function to show copy alert
+        function showCopyAlert() {
+            const alert = document.getElementById('copy-alert');
+            alert.classList.remove('d-none');
+            setTimeout(() => {
+                alert.classList.add('d-none');
+            }, 2000);
+        }
+        
+        // Highlight chords with more complex regex
+        const songContents = document.querySelectorAll('.song-content');
+        const chordRegex = /\b([A-G][#b]?(?:maj|min|m|sus|aug|dim|add)?(?:\d+)?(?:\/[A-G][#b]?)?)\b/g;
+        
+        songContents.forEach(content => {
+            if (content.classList.contains('chords-only')) return; // Skip the chords-only container
+            
+            let html = content.innerHTML;
+            
+            // Replace chords with spans
+            html = html.replace(chordRegex, '<span class="chord">$1</span>');
+            
+            content.innerHTML = html;
+        });
+        
+        // Extract chords only from the content for separated view
+        const songContent = document.querySelector('.song-content').innerText;
+        const chordsOnlyContent = document.getElementById('chords-only-content');
+        
+        if (chordsOnlyContent) {
+            // Process the content to extract chords
+            const lines = songContent.split('\n');
+            let chordsOnly = '';
+            
+            lines.forEach(line => {
+                let chordLine = '';
+                const matches = [...line.matchAll(chordRegex)];
+                
+                if (matches.length > 0) {
+                    // This line likely contains chords
+                    matches.forEach(match => {
+                        // Calculate position of chord in line
+                        const position = match.index;
+                        
+                        // Pad with spaces to position
+                        while (chordLine.length < position) {
+                            chordLine += ' ';
+                        }
+                        
+                        // Add the chord
+                        chordLine += match[0];
+                    });
+                    
+                    chordsOnly += chordLine + '\n';
+                } else {
+                    // No chords in this line, add empty line to maintain alignment
+                    chordsOnly += '\n';
+                }
+            });
+            
+            chordsOnlyContent.innerText = chordsOnly;
+        }
+        
+        // Handle view toggle buttons
+        const btnChordsLyrics = document.getElementById('btn-chords-lyrics');
+        const btnLyricsOnly = document.getElementById('btn-lyrics-only');
+        const btnChordsHighlighted = document.getElementById('btn-chords-highlighted');
+        const btnSeparatedView = document.getElementById('btn-separated-view');
+        
+        const chordsLyricsView = document.getElementById('chords-lyrics-view');
+        const lyricsOnlyView = document.getElementById('lyrics-only-view');
+        const chordsHighlightedView = document.getElementById('chords-highlighted-view');
+        const separatedView = document.getElementById('separated-view');
+        
+        // Function to switch views
+        function showView(viewToShow) {
+            // Hide all views
+            chordsLyricsView.style.display = 'none';
+            lyricsOnlyView.style.display = 'none';
+            chordsHighlightedView.style.display = 'none';
+            separatedView.style.display = 'none';
+            
+            // Remove active class from all buttons
+            btnChordsLyrics.classList.remove('active');
+            btnLyricsOnly.classList.remove('active');
+            btnChordsHighlighted.classList.remove('active');
+            btnSeparatedView.classList.remove('active');
+            
+            // Show selected view
+            viewToShow.style.display = 'block';
+        }
+        
+        // Event listeners for view buttons
+        btnChordsLyrics.addEventListener('click', function() {
+            showView(chordsLyricsView);
+            btnChordsLyrics.classList.add('active');
+        });
+        
+        btnLyricsOnly.addEventListener('click', function() {
+            showView(lyricsOnlyView);
+            btnLyricsOnly.classList.add('active');
+        });
+        
+        btnChordsHighlighted.addEventListener('click', function() {
+            showView(chordsHighlightedView);
+            btnChordsHighlighted.classList.add('active');
+        });
+        
+        btnSeparatedView.addEventListener('click', function() {
+            showView(separatedView);
+            btnSeparatedView.classList.add('active');
+        });
+        
+        // Apply special highlighting to the highlighted chords view
+        const highlightContent = document.querySelector('.highlight-chords');
+        if (highlightContent) {
+            // Enhance chord highlighting for this view
+            const enhancedHtml = highlightContent.innerHTML.replace(/<span class="chord">([^<]+)<\/span>/g, 
+                '<span class="chord-highlight">$1</span>');
+            highlightContent.innerHTML = enhancedHtml;
+        }
+        
+        // Copy lyrics button
+        const btnCopyLyrics = document.getElementById('btn-copy-lyrics');
+        btnCopyLyrics.addEventListener('click', function() {
+            const lyrics = document.querySelector('#lyrics-only-view .song-content').innerText;
+            navigator.clipboard.writeText(lyrics).then(() => {
+                showCopyAlert();
+            });
+        });
+        
+        // Copy chords button
+        const btnCopyChords = document.getElementById('btn-copy-chords');
+        btnCopyChords.addEventListener('click', function() {
+            const chords = document.getElementById('chords-only-content').innerText;
+            navigator.clipboard.writeText(chords).then(() => {
+                showCopyAlert();
+            });
+        });
+        
+        // Download as TXT button
+        const btnDownloadTxt = document.getElementById('btn-download-txt');
+        btnDownloadTxt.addEventListener('click', function() {
+            const songTitle = document.querySelector('.card-title').innerText.trim();
+            const songContent = document.querySelector('#chords-lyrics-view .song-content').innerText;
+            
+            // Create a text file and download it
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(songContent));
+            element.setAttribute('download', songTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.txt');
+            
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            
+            element.click();
+            
+            document.body.removeChild(element);
+        });
+        
+        // Edit song button
+        const btnEditSong = document.getElementById('btn-edit-song');
+        const editSongModal = new bootstrap.Modal(document.getElementById('editSongModal'));
+        
+        btnEditSong.addEventListener('click', function() {
+            editSongModal.show();
+        });
+        
+        // Save song changes
+        const btnSaveSongChanges = document.getElementById('saveSongChanges');
+        btnSaveSongChanges.addEventListener('click', function() {
+            const songId = window.location.pathname.split('/').pop();
+            const title = document.getElementById('editTitle').value;
+            const content = document.getElementById('editContent').value;
+            const categories = document.getElementById('editCategories').value.split(',').map(cat => cat.trim());
+            
+            // Create request to update song
+            fetch(`/api/songs/${songId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title: title,
+                    content: content,
+                    categories: categories
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to update song');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Hide modal and reload page to show changes
+                    editSongModal.hide();
+                    window.location.reload();
+                } else {
+                    alert('Failed to update song: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error updating song:', error);
+                alert('Error updating song: ' + error.message);
+            });
+        });
+    });
+</script>
+{% endblock %}

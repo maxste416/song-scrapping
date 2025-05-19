@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card bg-dark mb-4">
+            <div class="card-body text-center">
+                <h1 class="card-title display-4 mb-3">
+                    <i class="fas fa-music me-2"></i> Songs of Praise Scraper
+                </h1>
+                <p class="card-text lead">
+                    Extract song lyrics and chords from songsofpraise.in with this web scraper.
+                </p>
+                <div class="col-lg-6 mx-auto">
+                    <div class="input-group mb-3">
+                        <input type="text" id="scrape-url" class="form-control" placeholder="https://songsofpraise.in/" value="https://songsofpraise.in/">
+                        <button id="scrape-button" class="btn btn-primary btn-scrape">
+                            <i class="fas fa-sync-alt me-2"></i> Scrape Songs
+                        </button>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="follow-links" checked>
+                        <label class="form-check-label" for="follow-links">
+                            Follow links from index pages (Hindi, English, etc.) to scrape individual songs
+                        </label>
+                    </div>
+                </div>
+                <div id="scrape-status" class="mt-3 d-none"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if categories and categories|length > 0 %}
+<section class="mb-5">
+    <div class="card bg-dark">
+        <div class="card-header">
+            <h2><i class="fas fa-folder me-2"></i> Categories</h2>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% for category in categories %}
+                <div class="col-md-3 col-sm-6 mb-3">
+                    <a href="{{ url_for('view_category', category_name=category.name) }}" class="category-pill">
+                        <i class="fas fa-tag me-1"></i> {{ category.name }}
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{% if recent_songs and recent_songs|length > 0 %}
+<section>
+    <div class="card bg-dark">
+        <div class="card-header">
+            <h2><i class="fas fa-clock me-2"></i> Recently Added Songs</h2>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% for song in recent_songs %}
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card h-100 song-card">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ song.title }}</h5>
+                            {% if song.categories %}
+                            <div class="mb-2">
+                                {% for category in song.categories %}
+                                <span class="badge bg-secondary me-1">{{ category }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <p class="card-text text-muted small">
+                                {% if song.lyrics %}
+                                {{ song.lyrics|truncate(100) }}
+                                {% else %}
+                                {{ song.content|truncate(100) }}
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="card-footer text-center">
+                            <a href="{{ url_for('view_song', song_id=song.id) }}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-eye me-1"></i> View Song
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+{% else %}
+<div class="alert alert-info text-center mt-5">
+    <i class="fas fa-info-circle me-2"></i> 
+    No songs have been scraped yet. Click the "Scrape Songs" button to start the scraping process.
+</div>
+{% endif %}
+{% endblock %}
